@@ -6,41 +6,45 @@ use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DomCrawler\Crawler;
 
 class TorfsScraper {
-private $client;
+    private $client;
 
-public function __construct() {
+    public function __construct() {
+        $this->client = new Client();
+    }
 
-$this->client = new Client();
-}
+    /**
+     * @throws GuzzleException
+     */
+    public function fetchProducts() {
+        // Maak een GET-verzoek naar de Torfs schoenen pagina
+        $response = $this->client->request('GET', 'https://www.torfs.be/nl/heren/schoenen/');
 
-/**
-* @throws GuzzleException
-*/
-public function fetchProducts() {
+        // De body van de response als string ophalen
+        $html = (string) $response->getBody();
 
-// GET Request
-$response = $this->client->request('GET', 'https://www.torfs.be/nl/dames/schoenen');
+        // Gebruik DomCrawler om de HTML te parsen
+        $crawler = new Crawler($html);
 
-// De body als een string ophalen
-$html = (string) $response->getBody();
+        // Selecteer alle producten
+        return $crawler->filter('.product-tile')->each(function (Crawler $node) {
+            $name = $node->filter('a[itemprop="url"]')->count() ?
+                $node->filter('a[itemprop="url"]')->text() : 'N/A';
 
-// DomCrawler van Symfony om de HTML te parsen
-$crawler = new Crawler($html);
+            $price = $node->filter('span.value[itemprop="price"]')->count() ?
+                $node->filter('span.value[itemprop="price"]')->text() : 'N/A';
 
-// Selecteer alle producten
-return $crawler->filter('.product-tile')->each(function (Crawler $node) {
-$name = $node->filter('a[itemprop="url"]')->count() ? $node->filter('a[itemprop="url"]')->text() : 'N/A';
+            // Controleer verschillende attributen voor de afbeelding
+            $img = $node->filter('img')->count() ?
+                ($node->filter('img')->attr('src') ?:
+                    $node->filter('img')->attr('data-src') ?:
+                        $node->filter('img')->attr('data-original') ?:
+                            'Afbeelding niet beschikbaar') : 'Afbeelding niet beschikbaar';
 
-    $price = $node->filter('span.value[itemprop="price"]')->count() ?
-        $node->filter('span.value[itemprop="price"]')->text() : 'N/A';
-
-$img = $node->filter('img')->attr('src');
-
-return [
-'name' => $name,
-'price' => $price,
-'img' => $img,
-];
-});
-}
+            return [
+                'name' => $name,
+                'price' => $price,
+                'img' => $img,
+            ];
+        });
+    }
 }
