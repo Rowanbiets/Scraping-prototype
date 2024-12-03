@@ -70,7 +70,7 @@
 </head>
 <body>
 
-<h1>Torfs schoenen : Dames</h1>
+<h1>Torfs schoenen : Heren</h1>
 <h2>Producten gesorteerd op prijs: Hoog naar Laag</h2>
 
 <!-- Controleer of producten aanwezig zijn -->

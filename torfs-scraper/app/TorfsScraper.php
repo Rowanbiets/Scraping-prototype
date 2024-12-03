@@ -39,6 +39,9 @@ class TorfsScraper {
                     $node->filter('img')->attr('data-src') ?:
                         $node->filter('img')->attr('data-original') ?:
                             'Afbeelding niet beschikbaar') : 'Afbeelding niet beschikbaar';
+            if(str_contains($img, "data:image/gif") ) {
+                $img = $node->filter('.tile-image')->attr('data-src');
+            }
 
             return [
                 'name' => $name,
